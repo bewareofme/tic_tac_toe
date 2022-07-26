@@ -27,6 +27,11 @@ const gameboard=(()=>{
     return{getArray,changeArray,render,resetArray}
 })();
 
+const player=(mark)=>{
+    this.mark=mark;
+    return{mark};
+}
+
 const displayController=(()=>{
     let turn=0;
     let gameOver=0;
@@ -35,6 +40,7 @@ const displayController=(()=>{
     const getGameOver=()=>gameOver;
     const getDraw=()=>draw;
     const turnIncrement=()=>turn+=1;
+    // const {getpTurn} = player(mark,pturn);
     const gameEndingCond=(arr)=>{
          gameOver=0;
          draw=0;
@@ -67,10 +73,25 @@ const displayController=(()=>{
     return{gameEndingCond,getTurn,turnIncrement,resetTurn,getGameOver,getDraw,resetGameOver,resetDraw};
     
 })();
-const player=(mark)=>{
-    this.mark=mark;
-    return{mark};
-}
+const AI=(()=>{
+    let turn=0;
+    const getTurn=()=>turn;
+    const setTurn=(T)=>turn=T;
+    const playposition=(arr)=>{
+        let randompos=Math.floor(Math.random() * 9);
+        console.log(randompos);
+        if (arr[randompos].value !==null && displayController.getTurn()!==9 && !displayController.getGameOver()){
+            playposition(gameboard.getArray());
+        }
+        else if(displayController.getTurn()===9 && displayController.getGameOver()){
+            return;
+        }
+        const aibutton=document.querySelector(`button[position="${arr[randompos].pos}`);
+        aibutton.click();
+    }
+    return{playposition,getTurn,setTurn};
+})();
+
 const buttons=document.querySelectorAll('button[position]')
 buttons.forEach((button)=>
 button.addEventListener('click',(e)=>{
@@ -82,7 +103,6 @@ button.addEventListener('click',(e)=>{
         gameboard.render(position,'x');
         displayController.gameEndingCond(gameboard.getArray());
         button.classList.add('x');
-
         if(displayController.getGameOver() && !displayController.getDraw()){
             const winner=document.querySelector('.winner');
             winner.textContent="X is the winner";
@@ -103,6 +123,8 @@ button.addEventListener('click',(e)=>{
             draw.textContent="Draw";
         }
         button.disabled=true;
+        if(displayController.getTurn()%2!==AI.getTurn()%2){
+            AI.playposition(gameboard.getArray());}
 }))
 
 //reset button
@@ -122,5 +144,32 @@ reset.addEventListener('click',()=>{
     button.classList.remove('o');
 })
 })
+reset.disabled=true;
+buttons.forEach((button)=>
+button.disabled=true)
+const playerx=document.querySelector('.playerx');
+const playero=document.querySelector('.playero');
+playerx.addEventListener('click',()=>{
+    const realPlayer=player('x')
+    AI.setTurn(1);
+    reset.disabled=false;
+    playerx.classList.add('chosen');
+    buttons.forEach((button)=>
+    button.disabled=false)
+    playero.classList.remove('chosen');
+    reset.click();
+    AI.playposition(gameboard.getArray())
+})
+playero.addEventListener('click',()=>{
+    const realPlayer=player('o');
+    AI.setTurn(0);
+    playero.classList.add('chosen');
+    reset.disabled=false;
+    buttons.forEach((button)=>
+    button.disabled=false)
+    playerx.classList.remove('chosen');
+    reset.click();
+})
+
 
 
